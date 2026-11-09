@@ -1,0 +1,87 @@
+{
+  "info": {
+    "name": "Taller API Libros (Express + JWT + SQLite)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" },
+    { "key": "libroId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Login válido (guarda el token)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('200 y token', function () { pm.response.to.have.status(200); });",
+        "pm.collectionVariables.set('token', pm.response.json().token);"
+      ] } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"<contraseña de la cuenta de prueba>\"\n}" },
+        "url": "{{baseUrl}}/auth/login" }
+    },
+    {
+      "name": "2. Login con credenciales incorrectas (401)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('401', function () { pm.response.to.have.status(401); });"] } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"incorrecta\"\n}" },
+        "url": "{{baseUrl}}/auth/login" }
+    },
+    {
+      "name": "3. Crear libro (201, guarda libroId)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('201', function () { pm.response.to.have.status(201); });",
+        "pm.collectionVariables.set('libroId', pm.response.json().id);"
+      ] } }],
+      "request": { "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"titulo\": \"Cien años de soledad\",\n  \"autor\": \"Gabriel García Márquez\",\n  \"anio\": 1967,\n  \"genero\": \"Novela\"\n}" },
+        "url": "{{baseUrl}}/libros" }
+    },
+    {
+      "name": "4. Listar libros (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', function () { pm.response.to.have.status(200); });"] } }],
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/libros" }
+    },
+    {
+      "name": "5. Consultar libro por id (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', function () { pm.response.to.have.status(200); });"] } }],
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/libros/{{libroId}}" }
+    },
+    {
+      "name": "6. Actualizar libro (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', function () { pm.response.to.have.status(200); });"] } }],
+      "request": { "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"titulo\": \"Cien años de soledad\",\n  \"autor\": \"Gabriel García Márquez\",\n  \"anio\": 1967,\n  \"genero\": \"Realismo mágico\"\n}" },
+        "url": "{{baseUrl}}/libros/{{libroId}}" }
+    },
+    {
+      "name": "7. Crear sin campo obligatorio (400)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('400', function () { pm.response.to.have.status(400); });"] } }],
+      "request": { "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"autor\": \"Sin título\"\n}" },
+        "url": "{{baseUrl}}/libros" }
+    },
+    {
+      "name": "8. Listar sin token (401)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('401', function () { pm.response.to.have.status(401); });"] } }],
+      "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/libros" }
+    },
+    {
+      "name": "9. Listar con token inválido (401)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('401', function () { pm.response.to.have.status(401); });"] } }],
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer token.invalido.123" }], "url": "{{baseUrl}}/libros" }
+    },
+    {
+      "name": "10. Eliminar libro (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('200', function () { pm.response.to.have.status(200); });"] } }],
+      "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/libros/{{libroId}}" }
+    },
+    {
+      "name": "11. Consultar libro eliminado (404)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('404', function () { pm.response.to.have.status(404); });"] } }],
+      "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/libros/{{libroId}}" }
+    }
+  ]
+}
